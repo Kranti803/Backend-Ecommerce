@@ -14,10 +14,9 @@ const userSchema = new Schema({
         unique: true
     },
     password: {
-        type: Number,
+        type: String,
         required: [true, "Please enter your password"],
         minLength: [8, "Password must be grater than 7 characters"],
-        maxLength: [20, "Password cannot be greater than 20 characters"],
         select: false,
     },
     role: {
