@@ -2,6 +2,7 @@ import express from 'express';
 import { config } from 'dotenv';
 import { CustomError } from './middlewares/CustomError.js';
 import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
 import cors from 'cors';
 config({
     path: './config/config.env'
@@ -11,11 +12,14 @@ export const app = express();
 //to parse the cookie from req.cookie
 app.use(cookieParser());
 
+//
+app.use(bodyParser.json())
+
 //cors
 app.use(cors({
-    credentials:true,
-    origin:'http://localhost:3000',
-    methods:['GET','POST','PUT','DELETE']
+    credentials: true,
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE']
 }))
 
 //to parse req.body to json

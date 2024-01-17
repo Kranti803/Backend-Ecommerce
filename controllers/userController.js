@@ -5,6 +5,7 @@ import { ErrorHandler } from './../utils/ErrorHandler.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { sendEmail } from './../utils/sendEmail.js';
+import { tokenModel } from "../models/token.js";
 
 //register user
 export const registerUser = catchAsyncError(async (req, res, next) => {
@@ -22,9 +23,40 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
 
     const newUser = await userModel.create({ name, email, password: hashedPassword });
 
-    sendToken(res, 201, newUser, "User registered successfully");
+
+    //sending mail for email verification
+    const emailToken = await tokenModel.create({
+        userId: newUser._id,
+        token: crypto.randomBytes(20).toString('hex')
+    });
+    const url = `${process.env.FRONTEND_URL}/verifyemail/${newUser._id}/${emailToken.token}`;
+    const text = `Click on the link to verify your email email : ${url}`;
+    await sendEmail('Exclusive', newUser.email, 'Email Verification', text);
+
+    res.status(200).json({
+        success: true,
+        message: `A link has been sent to : ${newUser.email}. Please verify !`
+    })
+
 
 });
+
+//verify user email
+export const verifyTheEmail = catchAsyncError(async (req, res, next) => {
+    const { id, token } = req.params;
+    const user = await userModel.findOne({ _id: id });
+    if (!user) return next(new ErrorHandler('The link is invalid', 401));
+
+    await tokenModel.findOne({ userId: user._id, token: token });
+
+    if (!token) return next(new ErrorHandler('The link is invalid', 401));
+
+    const updatedUser = await userModel.findOneAndUpdate({ _id: user._id }, { isVerified: true });
+
+    sendToken(res, 201, updatedUser, "Email verified successfully");
+
+
+})
 
 //login user
 export const loginUser = catchAsyncError(async (req, res, next) => {
@@ -39,8 +71,19 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
 
     const isMatched = await bcrypt.compare(password, newUser.password);
 
-    if (!isMatched) return next(new ErrorHandler('Invalid credentials', 401))
+    if (!isMatched) return next(new ErrorHandler('Invalid credentials', 401));
 
+    if (!newUser.isVerified) {
+        const emailToken = await tokenModel.findOne({ userId: newUser._id });
+        if (!emailToken) {
+
+            const url = `${process.env.FRONTEND_URL}/verifyemail/${newUser._id}/${emailToken.token}`;
+            const text = `Click on the link to verify your email email : ${url}`;
+            await sendEmail('Exclusive', newUser.email, 'Email Verification', text);
+        }
+        return next(new ErrorHandler("Please verify your email address", 401));
+
+    }
     sendToken(res, 200, newUser, "Logged in successfully");
 
 });
@@ -64,7 +107,8 @@ export const logoutUser = catchAsyncError(async (req, res, next) => {
 export const getMyProfile = catchAsyncError(async (req, res, next) => {
 
     const userProfile = await userModel.findById(req.user._id);
-    return res.status(200).json({
+
+    res.status(200).json({
         userProfile
     })
 
@@ -77,25 +121,56 @@ export const updateMyProfile = catchAsyncError(async (req, res, next) => {
 
     const user = await userModel.findById(req.user._id).select('+password');
 
-    if (typeof (currentPassword) !== "undefined") {
+
+
+    if (currentPassword && newPassword) {
+
         const isMatchedPassword = await bcrypt.compare(currentPassword, user.password);
         if (!isMatchedPassword) return next(new ErrorHandler("Current password is incorrect"));
-    } else {
-        return next(new ErrorHandler("Current password is incorrect"));
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        let updatedUser = await userModel.findByIdAndUpdate(req.user._id, { password: hashedPassword }, {
+            new: true,
+            runValidators: true,
+        })
+        res.status(200).json({
+            success: true,
+            message: 'Profile updated successfully',
+            updatedUser
+        })
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    if (!currentPassword && newPassword) {
+        return next(new ErrorHandler('Enter both current and new password', 400));
+    } else if (currentPassword && !newPassword) {
+        return next(new ErrorHandler('Enter both current and new password', 400));
+    }
 
+    const updateFields = {};
 
-    let updatedUser = await userModel.findByIdAndUpdate(req.user._id, { name, email, password: hashedPassword }, {
-        new: true,
-        runValidators: true,
-    })
-    return res.status(200).json({
+    if (name) {
+        updateFields.name = name;
+    }
+    if (email) {
+        updateFields.email = email;
+    }
+
+    let updatedUser = await userModel.findByIdAndUpdate(
+        req.user._id,
+        updateFields,
+        {
+            new: true,
+            useFindAndModify: true
+        }
+    );
+
+    res.status(200).json({
         success: true,
         message: 'Profile updated successfully',
         updatedUser
     })
+
 
 });
 
@@ -121,7 +196,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
 
     //sending mail now
 
-    const url = `${process.env.FRONTEND_URL}/resetpassoword/${resetToken}`;
+    const url = `${process.env.FRONTEND_URL}/resetpassword/${resetToken}`;
     const text = `Click on the link to reset password : ${url}`;
     await sendEmail('Exclusive', user.email, 'Reset Password', text);
 
@@ -160,13 +235,5 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
         success: true,
         message: "Password changed successfully"
     })
-
-
-
-    res.status(200).json({
-        success: true,
-        message: `Reset link has been sent to : ${user.email}`
-    })
-
 
 })

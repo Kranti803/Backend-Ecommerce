@@ -24,13 +24,12 @@ const userSchema = new Schema({
         eum: ['admin', 'user'],
         default: 'user'
     },
-    isVerified:{
-        type:Boolean,
-        default:false
+    isVerified: {
+        type: Boolean,
+        default: false
     },
     resetPasswordToken: String,
-    resetPasswordExpire: String
-
+    resetPasswordExpire: String,
 }, { timestamps: true })
 
 export const userModel = new mongoose.model('User', userSchema); 
