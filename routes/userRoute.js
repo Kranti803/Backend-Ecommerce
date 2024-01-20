@@ -2,7 +2,6 @@ import express from 'express';
 const router = express.Router();
 import { forgotPassword, getMyProfile, loginUser, logoutUser, registerUser, resetPassword, updateMyProfile, verifyTheEmail } from '../controllers/userController.js';
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
-// import { isAdmin } from './../middlewares/isAdmin.js';
 
 //register user route
 router.route('/register').post(registerUser);

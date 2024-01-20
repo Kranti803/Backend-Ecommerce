@@ -13,9 +13,9 @@ export const sendEmail = async (from,to,subject,text) => {
     });
 
     await transporter.sendMail({
-        from,
-        to,
-        subject,
-        text
+        from:from,
+        to:to,
+        subject:subject,
+        text:text
     })
 }

@@ -2,7 +2,6 @@ import express from 'express';
 import { config } from 'dotenv';
 import { CustomError } from './middlewares/CustomError.js';
 import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
 import cors from 'cors';
 config({
     path: './config/config.env'
@@ -12,8 +11,6 @@ export const app = express();
 //to parse the cookie from req.cookie
 app.use(cookieParser());
 
-//
-app.use(bodyParser.json())
 
 //cors
 app.use(cors({
@@ -27,7 +24,12 @@ app.use(express.json());
 
 //importing and using routes
 import userRoute from './routes/userRoute.js';
+import otherRoute from './routes/otherRoute.js'
+import productRoute from './routes/productRoute.js'
+
 app.use('/api/v1', userRoute);
+app.use('/api/v1',otherRoute);
+app.use('/api/v1',productRoute);
 
 
 
