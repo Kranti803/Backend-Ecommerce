@@ -4,11 +4,68 @@ import { productModel } from "../models/productModel.js";
 import { ErrorHandler } from './../utils/ErrorHandler.js';
 import { getDataUri } from "../utils/getDataUri.js";
 
+//get all products
+
+export const getAllProducts = catchAsyncError(async (req, res, next) => {
+
+
+    const search = req.query.search || '';
+    const category = req.query.category || '';
+    const brand = req.query.brand || '';
+    const rating = req.query.rating || 0;
+    const startPrice = req.query.startPrice;
+    const endPrice = req.query.endPrice;
+
+    const page = Number(req.query.page);
+    const pageSize = Number(req.query.pageSize);
+
+
+    const products = await productModel.find({
+        title: {
+            $regex: search,
+            $options: 'i'
+        },
+        category: {
+            $regex: category,
+            $options: 'i'
+        },
+        brand: {
+            $regex: brand,
+            $options: 'i'
+        },
+        ...(startPrice) && { //conditionally adding object
+            price: {
+                $gte: startPrice,
+            }
+        },
+        ...(endPrice) && { //conditionally adding object
+            price: {
+                $lte: endPrice,
+            }
+        },
+        rating: {
+            $gte: rating
+        }
+    }).limit(pageSize).skip((page - 1) * pageSize);
+
+
+
+    res.status(200).json({
+        success: true,
+        products,
+        productsLenght: products.length
+    })
+
+
+})
+
+
+
 //add products
 export const addProducts = catchAsyncError(async (req, res, next) => {
-    const { title, description, price, stock, category } = req.body;
+    const { title, description, price, stock, category, brand } = req.body;
 
-    if (!title || !description || !price || !stock || !category) return next(new ErrorHandler("All fields are required", 400));
+    if (!title || !description || !price || !brand || !stock || !category) return next(new ErrorHandler("All fields are required", 400));
 
 
     const file = req.file;
@@ -23,7 +80,7 @@ export const addProducts = catchAsyncError(async (req, res, next) => {
         url: uploadedFile.url
     }
 
-    const newProduct = await productModel.create({ title, description, price, stock, category, productImage });
+    const newProduct = await productModel.create({ title, description, price, brand, stock, category, productImage });
 
     res.status(201).json({
         success: true,

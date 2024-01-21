@@ -16,6 +16,10 @@ const productSchema = new Schema({
         type: Number,
         required: [true, "Please enter product price"]
     },
+    brand: {
+        type: String,
+        reuqired:[true,"Please provide the product brand"]
+    },
     productImage: {
         public_id: {
             type: String,
