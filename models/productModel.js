@@ -1,6 +1,5 @@
 import mongoose, { Mongoose } from 'mongoose';
 import { Schema } from 'mongoose';
-import validator from 'validator';
 
 const productSchema = new Schema({
 
@@ -18,7 +17,7 @@ const productSchema = new Schema({
     },
     brand: {
         type: String,
-        reuqired:[true,"Please provide the product brand"]
+        reuqired: [true, "Please provide the product brand"]
     },
     productImage: {
         public_id: {
@@ -34,19 +33,23 @@ const productSchema = new Schema({
         {
             userId: {
                 type: mongoose.Types.ObjectId,
-                ref: 'User'
+                ref: 'User',
+                unique: true,
+                required: true
             },
             name: {
                 type: String,
             },
             review: {
                 type: String,
+            },
+            userRating: {
+                type: Number
             }
         }
     ],
     rating: {
-        type: Number,
-        default: 0
+        type: Number
     },
     stock: {
         type: Number,

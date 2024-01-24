@@ -147,3 +147,73 @@ export const deleteProduct = catchAsyncError(async (req, res, next) => {
     })
 
 })
+
+//add reviews and rating
+export const addReviewAndRating = catchAsyncError(async (req, res, next) => {
+
+    const { review, rating } = req.body;
+
+    if (!review || !rating) return next(new ErrorHandler("Both review and rating are required", 400))
+
+    const { productId } = req.params;
+
+    const product = await productModel.findById(productId);
+
+    if (!product) return next(new ErrorHandler("Product doesnot exists", 404));
+
+    let existedReviewIndex = product.reviews.findIndex((review) => review.userId.toString() === req.user._id.toString()); //return index if true else returns -1 if false
+
+    if (existedReviewIndex === -1) {
+        product.reviews.push({ userId: req.user._id, name: req.user.name, review, userRating: rating });
+    } else {
+        product.reviews[existedReviewIndex].review = review;
+        product.reviews[existedReviewIndex].userRating = rating;
+    }
+
+    //calculating the average rating of the product
+    const totalRating = product.reviews.reduce((totalSum, eachReview) => totalSum + eachReview.userRating, 0)
+    product.rating = totalRating / product.reviews.length;
+    await product.save();
+
+    if (existedReviewIndex === -1) {
+        res.status(201).json({
+            success: true,
+            message: "Review added successfully",
+        })
+    } else {
+        res.status(200).json({
+            success: true,
+            message: "Review updated successfully",
+        })
+    }
+
+})
+
+//delete reviews and rating
+export const deleteReviewAndRating = catchAsyncError(async (req, res, next) => {
+
+    const { productId } = req.params;
+
+    const product = await productModel.findById(productId);
+
+    if (!product) return next(new ErrorHandler("Product doesnot exits", 404));
+
+    const reviews = product.reviews.filter((review) => review.userId.toString() !== req.user._id.toString());
+
+    product.reviews = reviews;
+
+    const totalRating = product.reviews.reduce((totalSum, eachReview) => totalSum + eachReview.userRating, 0)
+    product.rating = totalRating / product.reviews.length;
+
+    await product.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Review deleted successfully"
+    })
+
+})
+
+
+
+
