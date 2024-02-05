@@ -87,4 +87,5 @@ const orderSchema = new Schema({
     deliveredAt: Date,
 
 }, { timestamps: true });
+
 export const orderModel = new mongoose.model('Order', orderSchema);
