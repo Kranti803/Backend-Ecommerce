@@ -18,3 +18,8 @@ export const contactUs = catchAsyncError(async (req, res) => {
     })
 
 })
+
+//get DashboardStats
+export const getDashboardStats = catchAsyncError(async(req,res,next)=>{
+
+})
