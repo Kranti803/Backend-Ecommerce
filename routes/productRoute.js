@@ -3,10 +3,13 @@ const router = express.Router();
 import { isAdmin } from './../middlewares/isAdmin.js';
 import { isLoggedIn } from './../middlewares/isLoggedIn.js';
 import { signleUpload } from './../middlewares/multer.js';
-import { addProducts, addReviewAndRating, deleteProduct, deleteReviewAndRating, getAllProducts, updateProduct } from './../controllers/productController.js';
+import { addProducts, addReviewAndRating, deleteProduct, deleteReviewAndRating, getAProduct, getAllProducts, updateProduct } from './../controllers/productController.js';
 
 //get all products
 router.route('/get_all_products').get(getAllProducts);
+
+//get a single product
+router.route('/product/:id').get(getAProduct);
 
 //add products
 router.route('/admin/addproducts').post(isLoggedIn, isAdmin, signleUpload, addProducts);

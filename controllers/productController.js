@@ -5,7 +5,6 @@ import { ErrorHandler } from './../utils/ErrorHandler.js';
 import { getDataUri } from "../utils/getDataUri.js";
 
 //get all products
-
 export const getAllProducts = catchAsyncError(async (req, res, next) => {
 
 
@@ -59,6 +58,17 @@ export const getAllProducts = catchAsyncError(async (req, res, next) => {
 
 })
 
+//get a singleProduct
+export const getAProduct = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params;
+    const product = await productModel.findById(id);
+
+    if (!product) return next(new ErrorHandler('Product doesnot exist', 400));
+    res.status(200).json({
+        success: true,
+        product
+    })
+})
 
 
 //add products
