@@ -1,19 +1,28 @@
 import express from 'express';
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
-import { contactUs, getAllProducts, getAllUsers, getDashboardStats } from '../controllers/otherController.js';
+import { changeRole, contactUs, deleteUser, getAllProducts, getAllUsers, getDashboardStats } from '../controllers/otherController.js';
 import { isAdmin } from './../middlewares/isAdmin.js';
 const router = express.Router();
 
-//contact us route
-router.route('/contact').post(isLoggedIn,contactUs);
+//contact us
+router.route('/contact').post(isLoggedIn, contactUs);
 
-//dashboard stats
-router.route('/dashboard_stats').get(isLoggedIn,isAdmin,getDashboardStats);
+//dashboard stats--admin
+router.route('/dashboard_stats').get(isLoggedIn, isAdmin, getDashboardStats);
 
 //getAllUsers--admin
-router.route('/dashboard_stats/allusers').get(isLoggedIn,isAdmin,getAllUsers);
+router.route('/dashboard_stats/allusers').get(isLoggedIn, isAdmin, getAllUsers);
 
 //getAllProducts--admin
-router.route('/dashboard_stats/allproducts').get(isLoggedIn,isAdmin,getAllProducts);
+router.route('/dashboard_stats/allproducts').get(isLoggedIn, isAdmin, getAllProducts);
+
+//delete user --admin
+router.route('/admin/deleteuser/:id').delete(isLoggedIn, isAdmin, deleteUser)
+
+//change user role--admin
+router.route('/admin/changerole/:id').put(isLoggedIn,isAdmin,changeRole)
+
+
+
 
 export default router;

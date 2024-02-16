@@ -15,8 +15,8 @@ export const getAllProducts = catchAsyncError(async (req, res, next) => {
     const startPrice = req.query.startPrice;
     const endPrice = req.query.endPrice;
 
-    const page = Number(req.query.page);
-    const pageSize = Number(req.query.pageSize);
+    const page = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || 10;
 
 
     const products = await productModel.find({
@@ -42,9 +42,6 @@ export const getAllProducts = catchAsyncError(async (req, res, next) => {
                 $lte: endPrice,
             }
         },
-        rating: {
-            $gte: rating
-        }
     }).limit(pageSize).skip((page - 1) * pageSize);
 
 
@@ -73,6 +70,7 @@ export const getAProduct = catchAsyncError(async (req, res, next) => {
 
 //add products
 export const addProducts = catchAsyncError(async (req, res, next) => {
+
     const { title, description, price, stock, category, brand } = req.body;
 
     if (!title || !description || !price || !brand || !stock || !category) return next(new ErrorHandler("All fields are required", 400));
@@ -90,12 +88,11 @@ export const addProducts = catchAsyncError(async (req, res, next) => {
         url: uploadedFile.url
     }
 
-    const newProduct = await productModel.create({ title, description, price, brand, stock, category, productImage });
+    await productModel.create({ title, description, price, brand, stock, category, productImage });
 
     res.status(201).json({
         success: true,
         message: "Product created successfully",
-        newProduct
     });
 
 });
@@ -112,9 +109,19 @@ export const updateProduct = catchAsyncError(async (req, res, next) => {
 
     if (!product) return next(new ErrorHandler("Product doesnot exits", 404));
 
-    await productModel.findByIdAndUpdate(id, req.body, {
+    const requiredUpdate = {
+        title: req.body.title || product.title,
+        description: req.body.description || product.description,
+        price: req.body.price || product.price,
+        stock: req.body.stock || product.stock,
+        category: req.body.category || product.category,
+        brand: req.body.brand || product.brand,
+        stock: req.body.stock || product.stock
+    }
+
+    await productModel.findByIdAndUpdate(id, requiredUpdate, {
         new: true,
-        runValidators: true
+        runValidators: false
     });
 
     if (file) {
@@ -212,8 +219,9 @@ export const deleteReviewAndRating = catchAsyncError(async (req, res, next) => {
 
     product.reviews = reviews;
 
+
     const totalRating = product.reviews.reduce((totalSum, eachReview) => totalSum + eachReview.userRating, 0)
-    product.rating = totalRating / product.reviews.length;
+    product.rating = totalRating / product.reviews.length || 0;
 
     await product.save();
 

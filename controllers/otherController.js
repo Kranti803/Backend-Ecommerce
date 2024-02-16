@@ -3,11 +3,14 @@ import { productModel } from "../models/productModel.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import { orderModel } from './../models/orderModel.js';
 import { userModel } from './../models/userModel.js';
+import { ErrorHandler } from './../utils/ErrorHandler.js';
 
 //contact us
 export const contactUs = catchAsyncError(async (req, res) => {
 
     const { name, email, phone, message } = req.body;
+
+    if (!name || !email || !phone || !message) return next(new ErrorHandler("All fields are required !", 400));
 
     const from = `${phone} ${email}`;
     const to = process.env.SMTP_USER;
@@ -96,4 +99,43 @@ export const getAllProducts = catchAsyncError(async (req, res) => {
         success: true,
         products
     })
+})
+
+
+//delete user --admin
+export const deleteUser = catchAsyncError(async (req, res, next) => {
+
+    const { id } = req.params;
+    const user = await userModel.findById(id);
+
+    if (!user) return next(new ErrorHandler("User doesnot exist", 400));
+
+    await userModel.findByIdAndDelete(id);
+
+    res.status(200).json({
+        success: true,
+        message: "User deleted successfully"
+    })
+});
+
+//change user's role
+export const changeRole = catchAsyncError(async (req, res, next) => {
+
+    const { id } = req.params;
+
+    const user = await userModel.findById(id);
+
+    if (!user) return next(new ErrorHandler("User doesnot exists", 400));
+
+
+    if (user.role === 'admin') user.role = 'user';
+    else if (user.role === 'user') user.role = 'admin';
+    
+    await user.save();
+
+    res.status(200).json({
+        success: true,
+        message: 'Role changed successfully'
+    })
+
 })
