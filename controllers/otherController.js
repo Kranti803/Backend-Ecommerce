@@ -5,6 +5,10 @@ import { orderModel } from './../models/orderModel.js';
 import { userModel } from './../models/userModel.js';
 import { ErrorHandler } from './../utils/ErrorHandler.js';
 
+//for stripe payment gateway
+import stripePackage from 'stripe';
+const stripe = stripePackage("sk_test_51OkhlcSJmrxbqh51FZVxSbbSosJbj2ZKdEemJvZ9cdv1Mv2SYZHeyRIjCjoexspclJEzeiPWIk72oMfhgjVoukER00AcZsFB68");
+
 //contact us
 export const contactUs = catchAsyncError(async (req, res) => {
 
@@ -130,12 +134,58 @@ export const changeRole = catchAsyncError(async (req, res, next) => {
 
     if (user.role === 'admin') user.role = 'user';
     else if (user.role === 'user') user.role = 'admin';
-    
+
     await user.save();
 
     res.status(200).json({
         success: true,
         message: 'Role changed successfully'
     })
+
+})
+
+//make stripe payment
+
+export const makeStripePayment = catchAsyncError(async (req, res, next) => {
+
+    const { products, shipping } = req.body;
+
+    const lineItems = products.map((item) => (
+        {
+            price_data: {
+                currency: 'usd',
+                product_data: {
+                    name: item.product.title,
+                },
+                unit_amount: item.product.price * 100,
+            },
+            quantity: item.quantity,
+        }
+    ));
+
+    // Adding shipping information
+    const shippingInfo = {
+        price_data: {
+            currency: 'usd',
+            product_data: {
+                name: 'Shipping',
+            },
+            unit_amount: shipping * 100, // Assuming 'shipping' is the shipping cost in dollars
+        },
+        quantity: 1, // Assuming one unit of shipping
+    };
+
+    const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: [...lineItems, shippingInfo], // Include shipping in the line_items array
+        mode: 'payment',
+        success_url: `http://localhost:3000/paymentsuccess`,
+        cancel_url: 'http://localhost:3000/cancel',
+    });
+
+    res.status(200).json({
+        success: true,
+        id: session.id,
+    });
 
 })

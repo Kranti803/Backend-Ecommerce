@@ -8,8 +8,7 @@ export const placeOrder = catchAsyncError(async (req, res, next) => {
 
     const { name, email, address, city, phone, orderItems, paymentInfo, subTotal, shippingPrice, totalPrice } = req.body;
 
-    console.log(name);
-
+    // if (!name || !email || !address || !city || !phone || !orderItems || !paymentInfo || !subTotal || !shippingPrice || !totalPrice) return next(new ErrorHandler('All fields are required', 400));
 
     await orderModel.create({
         name, email, address, city, phone, orderItems, user: req.user._id, paymentInfo, paidAt: Date.now(), subTotal, shippingPrice, totalPrice

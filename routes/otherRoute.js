@@ -1,6 +1,6 @@
 import express from 'express';
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
-import { changeRole, contactUs, deleteUser, getAllProducts, getAllUsers, getDashboardStats } from '../controllers/otherController.js';
+import { changeRole, contactUs, deleteUser, getAllProducts, getAllUsers, getDashboardStats,makeStripePayment } from '../controllers/otherController.js';
 import { isAdmin } from './../middlewares/isAdmin.js';
 const router = express.Router();
 
@@ -20,8 +20,11 @@ router.route('/dashboard_stats/allproducts').get(isLoggedIn, isAdmin, getAllProd
 router.route('/admin/deleteuser/:id').delete(isLoggedIn, isAdmin, deleteUser)
 
 //change user role--admin
-router.route('/admin/changerole/:id').put(isLoggedIn,isAdmin,changeRole)
+router.route('/admin/changerole/:id').put(isLoggedIn, isAdmin, changeRole)
 
+
+//make stripe payment
+router.route('/create-checkout-session').post(isLoggedIn, makeStripePayment);
 
 
 
