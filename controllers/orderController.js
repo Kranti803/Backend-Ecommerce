@@ -8,10 +8,26 @@ export const placeOrder = catchAsyncError(async (req, res, next) => {
 
     const { name, email, address, city, phone, orderItems, paymentInfo, subTotal, shippingPrice, totalPrice } = req.body;
 
-    // if (!name || !email || !address || !city || !phone || !orderItems || !paymentInfo || !subTotal || !shippingPrice || !totalPrice) return next(new ErrorHandler('All fields are required', 400));
+    if (!name || !email || !address || !city || !phone || !orderItems || !paymentInfo || !subTotal || !shippingPrice || !totalPrice) return next(new ErrorHandler('All fields are required', 400));
+
+    let productsOrdered = [];
+
+    orderItems.forEach((item) => {
+        productsOrdered.push(
+            {
+                name: item?.product?.title,
+                price: item?.product?.price,
+                quantity: item?.quantity,
+                image: item?.product?.productImage?.url,
+                product: item?.product?._id,
+            }
+        )
+
+    })
+
 
     await orderModel.create({
-        name, email, address, city, phone, orderItems, user: req.user._id, paymentInfo, paidAt: Date.now(), subTotal, shippingPrice, totalPrice
+        name, email, address, city, phone, orderItems: productsOrdered, user: req.user._id, paymentInfo, paidAt: Date.now(), subTotal, shippingPrice, totalPrice
     })
     res.status(201).json({
         success: true,
@@ -65,7 +81,7 @@ export const deleteSingleOrder = catchAsyncError(async (req, res, next) => {
 
     if (!order) return next(new ErrorHandler("Order doesnot exist", 400));
 
-    await order.findByIdAndDelete(id);
+    await orderModel.findByIdAndDelete(id);
 
     res.status(200).json({
         success: true,
@@ -98,7 +114,7 @@ export const changeOrderStatus = catchAsyncError(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        message: "Order placed successfully"
+        message: "Status changed successfully"
     })
 
 });

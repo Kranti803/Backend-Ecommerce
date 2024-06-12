@@ -180,7 +180,7 @@ export const makeStripePayment = catchAsyncError(async (req, res, next) => {
         line_items: [...lineItems, shippingInfo], // Include shipping in the line_items array
         mode: 'payment',
         success_url: `http://localhost:3000/paymentsuccess`,
-        cancel_url: 'http://localhost:3000/cancel',
+        cancel_url: 'http://localhost:3000/cancelpayment',
     });
 
     res.status(200).json({

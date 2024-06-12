@@ -7,7 +7,7 @@ const router = express.Router();
 //place new order
 router.route('/placeorder').post(isLoggedIn, placeOrder);
 
-//place new order
+//get all orders
 router.route('/get_all_orders').get(isLoggedIn, isAdmin, getAllOrders);
 
 //get single order details--admin
@@ -21,4 +21,5 @@ router.route('/deleteorder/:id').delete(isLoggedIn, isAdmin, deleteSingleOrder);
 
 //change order status
 router.route('/updateorder/:id').put(isLoggedIn, isAdmin, changeOrderStatus);
+
 export default router;

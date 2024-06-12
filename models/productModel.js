@@ -50,7 +50,7 @@ const productSchema = new Schema({
     ],
     rating: {
         type: Number,
-        default:0
+        default: 0
     },
     stock: {
         type: Number,
@@ -60,6 +60,10 @@ const productSchema = new Schema({
     category: {
         type: String,
         required: [true, "Please Provide the Category"]
+    },
+    featured: {
+        type: Boolean,
+        default: false
     }
 
 }, { timestamps: true });

@@ -11,12 +11,9 @@ export const getAllProducts = catchAsyncError(async (req, res, next) => {
     const search = req.query.search || '';
     const category = req.query.category || '';
     const brand = req.query.brand || '';
-    const rating = req.query.rating || 0;
-    const startPrice = req.query.startPrice;
-    const endPrice = req.query.endPrice;
 
     const page = Number(req.query.page) || 1;
-    const pageSize = Number(req.query.pageSize) || 10;
+    const pageSize = Number(req.query.pageSize) || 8;
 
 
     const products = await productModel.find({
@@ -32,24 +29,14 @@ export const getAllProducts = catchAsyncError(async (req, res, next) => {
             $regex: brand,
             $options: 'i'
         },
-        ...(startPrice) && { //conditionally adding object
-            price: {
-                $gte: startPrice,
-            }
-        },
-        ...(endPrice) && { //conditionally adding object
-            price: {
-                $lte: endPrice,
-            }
-        },
     }).limit(pageSize).skip((page - 1) * pageSize);
 
-
+    const productsLength = await productModel.countDocuments();
 
     res.status(200).json({
         success: true,
         products,
-        productsLenght: products.length
+        productsLength
     })
 
 
@@ -232,6 +219,27 @@ export const deleteReviewAndRating = catchAsyncError(async (req, res, next) => {
 
 })
 
+//update featured product
+export const updateFeatured = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params;
 
+    if (!id) return next(new ErrorHandler('Invalid product id', 400));
+
+    const product = await productModel.findById(id);
+
+    if (!product) return next(new ErrorHandler("Product doesnot exits", 400))
+
+
+    // if (product.featured === false) product.featured = true;
+    // else if (product.featured === true) product.featured = false;
+    product.featured = !product.featured;
+
+    await product.save();
+
+    res.status(200).json({
+        success: true,
+        message: 'Featured updated successfully'
+    })
+})
 
 

@@ -3,7 +3,7 @@ const router = express.Router();
 import { isAdmin } from './../middlewares/isAdmin.js';
 import { isLoggedIn } from './../middlewares/isLoggedIn.js';
 import { signleUpload } from './../middlewares/multer.js';
-import { addProducts, addReviewAndRating, deleteProduct, deleteReviewAndRating, getAProduct, getAllProducts, updateProduct } from './../controllers/productController.js';
+import { addProducts, addReviewAndRating, deleteProduct, deleteReviewAndRating, getAProduct, getAllProducts, updateFeatured, updateProduct } from './../controllers/productController.js';
 
 //get all products
 router.route('/get_all_products').get(getAllProducts);
@@ -25,5 +25,8 @@ router.route('/product_details/addreview_and_rating/:productId').post(isLoggedIn
 
 //delete review and rating
 router.route('/product_details/deletereview_and_rating/:productId').delete(isLoggedIn, deleteReviewAndRating);
+
+//update featured product
+router.route('/admin/change_featured/:id').put(isLoggedIn,isAdmin, updateFeatured);
 
 export default router;
