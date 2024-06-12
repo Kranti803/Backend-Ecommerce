@@ -1,7 +1,6 @@
 import { app } from "./app.js";
 import { connectDB } from "./config/database.js";
 import { v2 as cloudinary } from 'cloudinary';
-import cron from "node-cron";
 
 connectDB();
 
